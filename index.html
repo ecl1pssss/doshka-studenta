@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Hub — твій студентський помічник</title>
+<style>
+/* ====== THEME ====== */
+:root {
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --bg-input: #334155;
+  --text: #f1f5f9;
+  --text-dim: #94a3b8;
+  --accent: #6366f1;
+  --accent-2: #8b5cf6;
+  --accent-3: #ec4899;
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --orange: #f97316;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+[data-theme="light"] {
+  --bg: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-input: #e2e8f0;
+  --text: #1e293b;
+  --text-dim: #64748b;
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background .3s, color .3s;
+}
+
+/* ====== HEADER ====== */
+header {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  padding: 1.5rem 1rem;
+  text-align: center;
+  position: relative;
+}
+header h1 {
+  font-size: 1.8rem;
+  color: #fff;
+  letter-spacing: .5px;
+}
+header p {
+  color: rgba(255,255,255,.8);
+  margin-top: .3rem;
+  font-size: .9rem;
+}
+#themeToggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+#themeToggle:hover { background: rgba(255,255,255,.35); }
+
+/* ====== NAV ====== */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .3rem;
+  padding: .8rem 1rem;
+  background: var(--bg-card);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+nav button {
+  background: var(--bg-input);
+  color: var(--text);
+  border: none;
+  padding: .55rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 600;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+nav button:hover { opacity: .85; }
+nav button.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+}
+
+/* ====== MAIN ====== */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn .3s; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+h2 .icon { font-size: 1.6rem; }
+
+/* ====== CARDS ====== */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+/* ====== INPUTS ====== */
+input, select, textarea {
+  background: var(--bg-input);
+  color: var(--text);
+  border: 2px solid transparent;
+  padding: .6rem .8rem;
+  border-radius: 10px;
+  font-size: .9rem;
+  outline: none;
+  transition: border .2s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+input::placeholder { color: var(--text-dim); }
+label {
+  font-size: .8rem;
+  color: var(--text-dim);
+  margin-bottom: .3rem;
+  display: block;
+}
+
+/* ====== BUTTONS ====== */
+.btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border: none;
+  padding: .6rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .9rem;
+  transition: opacity .2s, transform .1s;
+}
+.btn:hover { opacity: .9; }
+.btn:active { transform: scale(.97); }
+.btn-danger { background: var(--red); }
+.btn-success { background: var(--green); }
+.btn-sm { padding: .35rem .7rem; font-size: .8rem; }
+
+/* ====== GRID ====== */
+.row { display: flex; gap: .6rem; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 120px; }
+
+/* ============================================= */
+/* 1. РОЗКЛАД                                     */
+/* ============================================= */
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: .5rem;
+}
+.schedule-table th, .schedule-table td {
+  border: 1px solid var(--bg-input);
+  padding: .5rem;
+  text-align: center;
+  font-size: .85rem;
+}
+.schedule-table th {
+  background: var(--bg-input);
+  font-weight: 700;
+}
+.schedule-table td input {
+  background: transparent;
+  border: 1px dashed var(--text-dim);
+  padding: .35rem;
+  text-align: center;
+  font-size: .8rem;
+}
+.lesson-slot {
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: .3rem;
+}
+.add-row-btn {
+  margin-top: .6rem;
+  width: 100%;
+  background: transparent;
+  border: 2px dashed var(--accent);
+  color: var(--accent);
+  padding: .5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background .2s;
+}
+.add-row-btn:hover { background: rgba(99,102,241,.1); }
+
+/* ============================================= */
+/* 2. ТУДУЛІСТ                                    */
+/* ============================================= */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .7rem;
+  background: var(--bg-input);
+  border-radius: 10px;
+  margin-bottom: .5rem;
+  transition: opacity .2s;
+}
+.todo-item.done { opacity: .5; }
+.todo-item.done .todo-text { text-decoration: line-through; }
+.todo-checkbox {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: var(--green);
+  flex-shrink: 0;
+}
+.todo-text { flex: 1; font-size: .9rem; }
+.todo-priority {
+  font-size: .7rem;
+  padding: .2rem .5rem;
+  border-radius: 6px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pri-high { background: var(--red); color: #fff; }
+.pri-med { background: var(--yellow); color: #000; }
+.pri-low { background: var(--green); color: #fff; }
+.todo-delete {
+  background: transparent;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: .2rem .4rem;
+}
+.todo-stats {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.stat-pill {
+  background: var(--bg-input);
+  padding: .4rem .8rem;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+/* ============================================= */
+/* 3. ПОМОДОРО                                    */
+/* ============================================= */
+.pomodoro-display {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.timer-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  position: relative;
+  background: conic-gradient(var(--accent) 0deg, var(--bg-input) 0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 1s linear;
+}
+.timer-inner {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.timer-text {
+  font-size: 2.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.timer-label {
+  font-size: .8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: .3rem;
+}
+.pomodoro-controls {
+  display: flex;
+  justify-content: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.pomodoro-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.pomo-stat {
+  text-align: center;
+}
+.pomo-stat .num {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.pomo-stat .lbl {
+  font-size: .75rem;
+  color: var(--text-dim);
+}
+.mode-btns {
+  display: flex;
+  justify-content: center;
+  gap: .4rem;
+  margin-bottom: 1rem;
+}
+.mode-btn {
+  background: var(--bg-input);
+  color: var(--text);
+  border: none;
+  padding: .4rem .9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+}
+.mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ============================================= */
+/* 4. КАЛЬКУЛЯТОР ОЦІНОК                          */
+/* ============================================= */
+.grade-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem;
+  background: var(--bg-input);
+  border-radius: 10px;
+  margin-bottom: .5rem;
+}
+.grade-item .subj-name { flex: 2; }
+.grade-item .subj-grade { flex: 1; max-width: 80px; }
+.grade-item .subj-credits { flex: 1; max-width: 70px; }
+.grade-item .subj-points { flex: 1; max-width: 80px; text-align: center; font-weight: 700; color: var(--accent); }
+.grade-result {
+  text-align: center;
+  padding: 1.2rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: var(--radius);
+  margin-top: 1rem;
+}
+.grade-result .big-num {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+.grade-result .label {
+  color: rgba(255,255,255,.8);
+  font-size: .85rem;
+}
+.grade-result .gpa {
+  margin-top: .5rem;
+  color: rgba(255,255,255,.9);
+  font-size: .9rem;
+}
+
+/* ============================================= */
+/* 5. ТРЕКЕР ВИТРАТ                               */
+/* ============================================= */
+.expense-summary {
+  display: flex;
+  gap: .6rem;
+  margin-bottom: 1rem;
+}
+.exp-card {
+  flex: 1;
+  padding: 1rem;
+  border-radius: var(--radius);
+  text-align: center;
+}
+.exp-card.income { background: rgba(34,197,94,.15); }
+.exp-card.expense { background: rgba(239,68,68,.15); }
+.exp-card.balance { background: rgba(99,102,241,.15); }
+.exp-card .amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.exp-card.income .amount { color: var(--green); }
+.exp-card.expense .amount { color: var(--red); }
+.exp-card.balance .amount { color: var(--accent); }
+.exp-card .lbl { font-size: .75rem; color: var(--text-dim); margin-top: .2rem; }
+.expense-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem;
+  background: var(--bg-input);
+  border-radius: 10px;
+  margin-bottom: .5rem;
+  font-size: .85rem;
+}
+.expense-item .exp-cat {
+  font-size: 1.2rem;
+}
+.expense-item .exp-desc { flex: 1; }
+.expense-item .exp-amt { font-weight: 700; white-space: nowrap; }
+.expense-item .exp-amt.income { color: var(--green); }
+.expense-item .exp-amt.expense { color: var(--red); }
+.expense-item .exp-date { font-size: .7rem; color: var(--text-dim); }
+.expense-delete {
+  background: transparent;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: .2rem;
+}
+
+/* ====== EMPTY STATE ====== */
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-dim);
+  font-size: .9rem;
+}
+
+/* ====== FOOTER ====== */
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-dim);
+  font-size: .8rem;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 600px) {
+  header h1 { font-size: 1.3rem; }
+  .timer-circle { width: 160px; height: 160px; }
+  .timer-inner { width: 130px; height: 130px; }
+  .timer-text { font-size: 2rem; }
+  .schedule-table { font-size: .75rem; }
+  .schedule-table th, .schedule-table td { padding: .3rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button id="themeToggle" title="Змінити тему">🌙</button>
+  <h1>🎓 Student Hub</h1>
+  <p>твій студентський помічник</p>
+</header>
+
+<nav>
+  <button class="nav-btn active" data-tab="schedule">📅 Розклад</button>
+  <button class="nav-btn" data-tab="todo">✅ Тудуліст</button>
+  <button class="nav-btn" data-tab="pomodoro">🍅 Помодоро</button>
+  <button class="nav-btn" data-tab="grades">📊 Оцінки</button>
+  <button class="nav-btn" data-tab="expenses">💰 Витрати</button>
+</nav>
+
+<main>
+  <!-- =========================================== -->
+  <!-- 1. РОЗКЛАД                                  -->
+  <!-- =========================================== -->
+  <section id="schedule" class="tab-content active">
+    <h2><span class="icon">📅</span> Розклад занять</h2>
+    <div class="card">
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:.8rem">
+        Натисни на клітинку щоб ввести предмет. Дані зберігаються автоматично.
+      </p>
+      <div id="scheduleContainer"></div>
+      <button class="add-row-btn" onclick="addScheduleRow()">+ Додати пару</button>
+    </div>
+  </section>
+
+  <!-- =========================================== -->
+  <!-- 2. ТУДУЛІСТ                                 -->
+  <!-- =========================================== -->
+  <section id="todo" class="tab-content">
+    <h2><span class="icon">✅</span> Тудуліст</h2>
+    <div class="todo-stats" id="todoStats"></div>
+    <div class="card">
+      <div class="row" style="align-items:flex-end">
+        <div style="flex:3">
+          <label for="todoInput">Нова задача</label>
+          <input type="text" id="todoInput" placeholder="Що потрібно зробити?" onkeydown="if(event.key==='Enter')addTodo()">
+        </div>
+        <div style="flex:1">
+          <label for="todoPriority">Пріоритет</label>
+          <select id="todoPriority">
+            <option value="low">🟢 Низький</option>
+            <option value="med" selected>🟡 Середній</option>
+            <option value="high">🔴 Високий</option>
+          </select>
+        </div>
+        <button class="btn" onclick="addTodo()">Додати</button>
+      </div>
+    </div>
+    <div id="todoList"></div>
+  </section>
+
+  <!-- =========================================== -->
+  <!-- 3. ПОМОДОРО                                 -->
+  <!-- =========================================== -->
+  <section id="pomodoro" class="tab-content">
+    <h2><span class="icon">🍅</span> Помодоро таймер</h2>
+    <div class="card">
+      <div class="mode-btns">
+        <button class="mode-btn active" onclick="setMode('work',25)">📚 Робота 25хв</button>
+        <button class="mode-btn" onclick="setMode('short',5)">☕ Перерва 5хв</button>
+        <button class="mode-btn" onclick="setMode('long',15)">🛋️ Велика 15хв</button>
+      </div>
+      <div class="pomodoro-display">
+        <div class="timer-circle" id="timerCircle">
+          <div class="timer-inner">
+            <div class="timer-text" id="timerText">25:00</div>
+            <div class="timer-label" id="timerLabel">РОБОТА</div>
+          </div>
+        </div>
+        <div class="pomodoro-controls">
+          <button class="btn" id="startBtn" onclick="toggleTimer()">▶ Старт</button>
+          <button class="btn btn-danger" onclick="resetTimer()">↺ Скинути</button>
+        </div>
+        <div class="pomodoro-stats">
+          <div class="pomo-stat">
+            <div class="num" id="pomoCount">0</div>
+            <div class="lbl">завершених сесій</div>
+          </div>
+          <div class="pomo-stat">
+            <div class="num" id="pomoTotal">0хв</div>
+            <div class="lbl">всього вчитись</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================== -->
+  <!-- 4. КАЛЬКУЛЯТОР ОЦІНОК                       -->
+  <!-- =========================================== -->
+  <section id="grades" class="tab-content">
+    <h2><span class="icon">📊</span> Калькулятор оцінок</h2>
+    <div class="card">
+      <div class="row" style="align-items:flex-end">
+        <div style="flex:2">
+          <label for="gradeSubject">Предмет</label>
+          <input type="text" id="gradeSubject" placeholder="Наприклад: Математика" onkeydown="if(event.key==='Enter')addGrade()">
+        </div>
+        <div style="flex:1;max-width:90px">
+          <label for="gradeValue">Оцінка</label>
+          <input type="number" id="gradeValue" min="60" max="100" placeholder="90">
+        </div>
+        <div style="flex:1;max-width:80px">
+          <label for="gradeCredits">Кредити</label>
+          <input type="number" id="gradeCredits" min="1" max="10" placeholder="3">
+        </div>
+        <button class="btn" onclick="addGrade()">Додати</button>
+      </div>
+    </div>
+    <div id="gradeList"></div>
+    <div id="gradeResult"></div>
+  </section>
+
+  <!-- =========================================== -->
+  <!-- 5. ТРЕКЕР ВИТРАТ                            -->
+  <!-- =========================================== -->
+  <section id="expenses" class="tab-content">
+    <h2><span class="icon">💰</span> Трекер витрат</h2>
+    <div class="expense-summary" id="expenseSummary"></div>
+    <div class="card">
+      <div class="row" style="align-items:flex-end">
+        <div style="flex:2">
+          <label for="expDesc">Опис</label>
+          <input type="text" id="expDesc" placeholder="Наприклад: Обід у столовій" onkeydown="if(event.key==='Enter')addExpense()">
+        </div>
+        <div style="flex:1;max-width:120px">
+          <label for="expAmount">Сума (₴)</label>
+          <input type="number" id="expAmount" placeholder="150">
+        </div>
+        <div style="flex:1;max-width:140px">
+          <label for="expType">Тип</label>
+          <select id="expType">
+            <option value="expense">💸 Витрата</option>
+            <option value="income">💵 Доход</option>
+          </select>
+        </div>
+        <div style="flex:1;max-width:140px">
+          <label for="expCat">Категорія</label>
+          <select id="expCat">
+            <option value="🍔">🍔 Їжа</option>
+            <option value="🚌">🚌 Транспорт</option>
+            <option value="📚">📚 Навчання</option>
+            <option value="🎮">🎮 Розваги</option>
+            <option value="🏠">🏠 Житло</option>
+            <option value="👕">👕 Одяг</option>
+            <option value="💊">💊 Здоров'я</option>
+            <option value="💳">💳 Інше</option>
+          </select>
+        </div>
+        <button class="btn" onclick="addExpense()">Додати</button>
+      </div>
+    </div>
+    <div id="expenseList"></div>
+  </section>
+</main>
+
+<footer>
+  Student Hub © 2026 — створено для студентів 🎓
+</footer>
+
+<script>
+/* ============================================= */
+/* THEME                                         */
+/* ============================================= */
+const themeToggle = document.getElementById('themeToggle');
+let currentTheme = localStorage.getItem('theme') || 'dark';
+applyTheme();
+themeToggle.addEventListener('click', () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', currentTheme);
+  applyTheme();
+});
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+}
+
+/* ============================================= */
+/* TABS                                          */
+/* ============================================= */
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================================= */
+/* 1. SCHEDULE                                    */
+/* ============================================= */
+const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб'];
+let schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+if (schedule.length === 0) schedule = [['','','','','',''],['','','','','',''],['','','','','','']];
+
+function renderSchedule() {
+  const c = document.getElementById('scheduleContainer');
+  let html = '<table class="schedule-table"><thead><tr><th>Пара</th>';
+  DAYS.forEach(d => html += `<th>${d}</th>`);
+  html += '</tr></thead><tbody>';
+  schedule.forEach((row, ri) => {
+    html += `<tr><td><strong>${ri+1}</strong></td>`;
+    row.forEach((val, ci) => {
+      html += `<td><input type="text" value="${escapeHtml(val)}" placeholder="—" onchange="updateSchedule(${ri},${ci},this.value)"></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  c.innerHTML = html;
+}
+function updateSchedule(r, c, val) {
+  schedule[r][c] = val;
+  localStorage.setItem('schedule', JSON.stringify(schedule));
+}
+function addScheduleRow() {
+  schedule.push(['','','','','','']);
+  localStorage.setItem('schedule', JSON.stringify(schedule));
+  renderSchedule();
+}
+renderSchedule();
+
+/* ============================================= */
+/* 2. TODO LIST                                   */
+/* ============================================= */
+let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+
+function renderTodos() {
+  const list = document.getElementById('todoList');
+  const stats = document.getElementById('todoStats');
+  if (todos.length === 0) {
+    list.innerHTML = '<div class="empty">Список порожній. Додай першу задачу! 📝</div>';
+  } else {
+    const priOrder = { high: 0, med: 1, low: 2 };
+    const sorted = [...todos].sort((a,b) => priOrder[a.priority] - priOrder[b.priority]);
+    list.innerHTML = sorted.map((t) => {
+      const idx = todos.indexOf(t);
+      const priLabel = { high:'🔴 Високий', med:'🟡 Середній', low:'🟢 Низький' }[t.priority];
+      const priClass = { high:'pri-high', med:'pri-med', low:'pri-low' }[t.priority];
+      return `<div class="todo-item ${t.done?'done':''}">
+        <input type="checkbox" class="todo-checkbox" ${t.done?'checked':''} onchange="toggleTodo(${idx})">
+        <span class="todo-text">${escapeHtml(t.text)}</span>
+        <span class="todo-priority ${priClass}">${priLabel}</span>
+        <button class="todo-delete" onclick="deleteTodo(${idx})">✕</button>
+      </div>`;
+    }).join('');
+  }
+  const done = todos.filter(t => t.done).length;
+  const total = todos.length;
+  stats.innerHTML = `
+    <div class="stat-pill">📋 Всього: ${total}</div>
+    <div class="stat-pill" style="color:var(--green)">✅ Виконано: ${done}</div>
+    <div class="stat-pill" style="color:var(--yellow)">⏳ Залишилось: ${total - done}</div>
+  `;
+}
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const pri = document.getElementById('todoPriority').value;
+  if (input.value.trim() === '') return;
+  todos.push({ text: input.value.trim(), priority: pri, done: false });
+  localStorage.setItem('todos', JSON.stringify(todos));
+  input.value = '';
+  renderTodos();
+}
+function toggleTodo(idx) {
+  todos[idx].done = !todos[idx].done;
+  localStorage.setItem('todos', JSON.stringify(todos));
+  renderTodos();
+}
+function deleteTodo(idx) {
+  todos.splice(idx, 1);
+  localStorage.setItem('todos', JSON.stringify(todos));
+  renderTodos();
+}
+renderTodos();
+
+/* ============================================= */
+/* 3. POMODORO                                    */
+/* ============================================= */
+let pomoMode = 'work';
+let pomoDuration = 25;
+let pomoSeconds = 25 * 60;
+let pomoTotal = pomoDuration * 60;
+let pomoRunning = false;
+let pomoInterval = null;
+let pomoCount = parseInt(localStorage.getItem('pomoCount') || '0');
+let pomoTotalMin = parseInt(localStorage.getItem('pomoTotalMin') || '0');
+
+document.getElementById('pomoCount').textContent = pomoCount;
+document.getElementById('pomoTotal').textContent = pomoTotalMin + 'хв';
+
+function updateTimerDisplay() {
+  const m = Math.floor(pomoSeconds / 60);
+  const s = pomoSeconds % 60;
+  document.getElementById('timerText').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const pct = ((pomoTotal - pomoSeconds) / pomoTotal) * 360;
+  document.getElementById('timerCircle').style.background = `conic-gradient(var(--accent) ${pct}deg, var(--bg-input) ${pct}deg)`;
+}
+function setMode(mode, min) {
+  pomoMode = mode;
+  pomoDuration = min;
+  pomoSeconds = min * 60;
+  pomoTotal = min * 60;
+  const labels = { work: 'РОБОТА', short: 'ПЕРЕРВА', long: 'ВЕЛИКА ПЕРЕРВА' };
+  document.getElementById('timerLabel').textContent = labels[mode];
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  resetTimer();
+  updateTimerDisplay();
+}
+function toggleTimer() {
+  if (pomoRunning) {
+    clearInterval(pomoInterval);
+    pomoRunning = false;
+    document.getElementById('startBtn').textContent = '▶ Старт';
+  } else {
+    pomoRunning = true;
+    document.getElementById('startBtn').textContent = '⏸ Пауза';
+    pomoInterval = setInterval(() => {
+      pomoSeconds--;
+      updateTimerDisplay();
+      if (pomoSeconds <= 0) {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        document.getElementById('startBtn').textContent = '▶ Старт';
+        if (pomoMode === 'work') {
+          pomoCount++;
+          pomoTotalMin += pomoDuration;
+          localStorage.setItem('pomoCount', pomoCount);
+          localStorage.setItem('pomoTotalMin', pomoTotalMin);
+          document.getElementById('pomoCount').textContent = pomoCount;
+          document.getElementById('pomoTotal').textContent = pomoTotalMin + 'хв';
+          alert('🎉 Сесія завершена! Час відпочити.');
+          setMode('short', 5);
+        } else {
+          alert('⏰ Перерва закінчилась! Працюй далі.');
+          setMode('work', 25);
+        }
+      }
+    }, 1000);
+  }
+}
+function resetTimer() {
+  clearInterval(pomoInterval);
+  pomoRunning = false;
+  pomoSeconds = pomoDuration * 60;
+  pomoTotal = pomoDuration * 60;
+  document.getElementById('startBtn').textContent = '▶ Старт';
+  updateTimerDisplay();
+}
+updateTimerDisplay();
+
+/* ============================================= */
+/* 4. GRADE CALCULATOR                            */
+/* ============================================= */
+let grades = JSON.parse(localStorage.getItem('grades') || '[]');
+
+function renderGrades() {
+  const list = document.getElementById('gradeList');
+  const result = document.getElementById('gradeResult');
+  if (grades.length === 0) {
+    list.innerHTML = '<div class="empty">Додай предмети щоб розрахувати середній бал 📊</div>';
+    result.innerHTML = '';
+    return;
+  }
+  list.innerHTML = grades.map((g, i) => {
+    const pts = gradeToPoints(g.grade);
+    return `<div class="grade-item">
+      <span style="flex:2;font-weight:600">${escapeHtml(g.subject)}</span>
+      <input type="number" class="subj-grade" value="${g.grade}" min="60" max="100" onchange="updateGrade(${i},'grade',this.value)">
+      <input type="number" class="subj-credits" value="${g.credits}" min="1" max="10" onchange="updateGrade(${i},'credits',this.value)">
+      <span class="subj-points">${pts}</span>
+      <button class="todo-delete" onclick="deleteGrade(${i})">✕</button>
+    </div>`;
+  }).join('');
+  // calc weighted average and GPA
+  let totalCredits = 0;
+  let weightedSum = 0;
+  let gpaSum = 0;
+  grades.forEach(g => {
+    totalCredits += g.credits;
+    weightedSum += g.grade * g.credits;
+    gpaSum += gradeToPoints(g.grade) * g.credits;
+  });
+  const avg = (weightedSum / totalCredits).toFixed(1);
+  const gpa = (gpaSum / totalCredits).toFixed(2);
+  result.innerHTML = `<div class="grade-result">
+    <div class="big-num">${avg}</div>
+    <div class="label">Середній бал (за ${totalCredits} кредитів)</div>
+    <div class="gpa">GPA: ${gpa} / 4.0</div>
+  </div>`;
+}
+function gradeToPoints(grade) {
+  if (grade >= 90) return 'A (4.0)';
+  if (grade >= 82) return 'B (3.5)';
+  if (grade >= 74) return 'C (3.0)';
+  if (grade >= 64) return 'D (2.0)';
+  return 'F (1.0)';
+}
+function addGrade() {
+  const subj = document.getElementById('gradeSubject');
+  const val = document.getElementById('gradeValue');
+  const cred = document.getElementById('gradeCredits');
+  if (subj.value.trim() === '' || val.value === '') return;
+  grades.push({ subject: subj.value.trim(), grade: parseInt(val.value), credits: parseInt(cred.value) || 1 });
+  localStorage.setItem('grades', JSON.stringify(grades));
+  subj.value = ''; val.value = ''; cred.value = '';
+  renderGrades();
+}
+function updateGrade(i, field, val) {
+  grades[i][field] = parseInt(val);
+  localStorage.setItem('grades', JSON.stringify(grades));
+  renderGrades();
+}
+function deleteGrade(i) {
+  grades.splice(i, 1);
+  localStorage.setItem('grades', JSON.stringify(grades));
+  renderGrades();
+}
+renderGrades();
+
+/* ============================================= */
+/* 5. EXPENSE TRACKER                             */
+/* ============================================= */
+let expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+function renderExpenses() {
+  const list = document.getElementById('expenseList');
+  const summary = document.getElementById('expenseSummary');
+  if (expenses.length === 0) {
+    list.innerHTML = '<div class="empty">Записів поки немає. Додай першу витрату або доход! 💰</div>';
+  } else {
+    list.innerHTML = expenses.slice().reverse().map((e, ri) => {
+      const i = expenses.length - 1 - ri;
+      return `<div class="expense-item">
+        <span class="exp-cat">${e.cat || '💳'}</span>
+        <div class="exp-desc">
+          ${escapeHtml(e.desc)}
+          <div class="exp-date">${e.date}</div>
+        </div>
+        <span class="exp-amt ${e.type}">${e.type === 'income' ? '+' : '−'}${e.amount}₴</span>
+        <button class="expense-delete" onclick="deleteExpense(${i})">✕</button>
+      </div>`;
+    }).join('');
+  }
+  // summary
+  let income = 0, expense = 0;
+  expenses.forEach(e => {
+    if (e.type === 'income') income += e.amount;
+    else expense += e.amount;
+  });
+  const balance = income - expense;
+  summary.innerHTML = `
+    <div class="exp-card income"><div class="amount">+${income}₴</div><div class="lbl">💵 Доходи</div></div>
+    <div class="exp-card expense"><div class="amount">−${expense}₴</div><div class="lbl">💸 Витрати</div></div>
+    <div class="exp-card balance"><div class="amount">${balance >= 0 ? '+' : ''}${balance}₴</div><div class="lbl">⚖️ Баланс</div></div>
+  `;
+}
+function addExpense() {
+  const desc = document.getElementById('expDesc');
+  const amt = document.getElementById('expAmount');
+  const type = document.getElementById('expType').value;
+  const cat = document.getElementById('expCat').value;
+  if (desc.value.trim() === '' || amt.value === '') return;
+  const today = new Date().toLocaleDateString('uk-UA');
+  expenses.push({ desc: desc.value.trim(), amount: parseInt(amt.value), type, cat, date: today });
+  localStorage.setItem('expenses', JSON.stringify(expenses));
+  desc.value = ''; amt.value = '';
+  renderExpenses();
+}
+function deleteExpense(i) {
+  expenses.splice(i, 1);
+  localStorage.setItem('expenses', JSON.stringify(expenses));
+  renderExpenses();
+}
+renderExpenses();
+
+/* ============================================= */
+/* UTILS                                          */
+/* ============================================= */
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
